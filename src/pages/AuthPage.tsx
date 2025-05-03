@@ -7,6 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { Role } from "@/context/AuthContext";
 
 const AuthPage = () => {
   const { signIn, signUp, user, isLoading } = useAuth();
@@ -14,6 +22,7 @@ const AuthPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nom, setNom] = useState("");
+  const [selectedRole, setSelectedRole] = useState<Role>("client");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -43,7 +52,7 @@ const AuthPage = () => {
     setIsSubmitting(true);
     
     try {
-      await signUp(email, password, nom);
+      await signUp(email, password, nom, selectedRole);
       // On ne redirige pas immédiatement après l'inscription car il pourrait y avoir une vérification d'email
     } catch (error: any) {
       setError(error.message || "Une erreur est survenue lors de l'inscription");
@@ -150,6 +159,23 @@ const AuthPage = () => {
                       required
                       minLength={6}
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-role">Rôle</Label>
+                    <Select
+                      value={selectedRole}
+                      onValueChange={(value) => setSelectedRole(value as Role)}
+                    >
+                      <SelectTrigger id="signup-role">
+                        <SelectValue placeholder="Sélectionnez un rôle" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="client">Client</SelectItem>
+                        <SelectItem value="employe">Employé</SelectItem>
+                        <SelectItem value="admin">Administrateur</SelectItem>
+                        <SelectItem value="fournisseur">Fournisseur</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   {error && (
