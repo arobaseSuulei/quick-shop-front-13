@@ -9,9 +9,12 @@ import {
   NavigationMenuLink,
 } from "@/components/ui/navigation-menu";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
+import UserProfileButton from "@/components/auth/UserProfileButton";
 
 const Navbar = () => {
   const { getTotalItems } = useCart();
+  const { user, hasRole } = useAuth();
   
   return (
     <header className="border-b">
@@ -48,13 +51,26 @@ const Navbar = () => {
                 </Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link to="/orders" className="text-sm hover:text-gray-600 transition-colors">
-                  My Orders
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
+            
+            {user && hasRole('client') && (
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link to="/orders" className="text-sm hover:text-gray-600 transition-colors">
+                    Mes Commandes
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            )}
+            
+            {user && hasRole('admin') && (
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link to="/admin" className="text-sm hover:text-gray-600 transition-colors">
+                    Administration
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            )}
           </NavigationMenuList>
         </NavigationMenu>
         
@@ -73,6 +89,8 @@ const Navbar = () => {
               </span>
             )}
           </Link>
+          
+          <UserProfileButton />
         </div>
       </div>
     </header>
