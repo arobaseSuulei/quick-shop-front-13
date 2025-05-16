@@ -104,11 +104,12 @@ export default function GroupChat() {
   // Initialisation et temps réel
   useEffect(() => {
     if (isAllowed) fetchMessages();
+    // Realtime : écoute tous les changements sur la table messagerie (messages de groupe)
     const channel = supabase
-      .channel("group-messages")
+      .channel('messagerie-group-realtime')
       .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messagerie", filter: "destinataire_id=is.null" },
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'messagerie', filter: 'destinataire_id=is.null' },
         () => fetchMessages()
       )
       .subscribe();
