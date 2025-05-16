@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Minus, Plus } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 
 interface Product {
   id: number;
@@ -24,6 +25,11 @@ const ProductPage = () => {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCart();
+  const { user, userRoles } = useAuth();
+  const [note, setNote] = useState(5);
+  const [commentaire, setCommentaire] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isClient = user && userRoles.includes("client");
 
   useEffect(() => {
     fetchProduct();
@@ -178,6 +184,65 @@ const ProductPage = () => {
           </div>
         </div>
       </main>
+      
+      {/* Formulaire d'avis client */}
+      {isClient && product && (
+        <section className="container mx-auto px-4 py-8 max-w-xl">
+          <h2 className="text-lg font-semibold mb-2">Laisser un avis</h2>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setIsSubmitting(true);
+              try {
+                const { error } = await supabase.from("avis").insert([
+                  {
+                    client_id: user.id,
+                    produit_id: product.id,
+                    note,
+                    commentaire,
+                  },
+                ]);
+                if (error) throw error;
+                toast.success("Merci pour votre avis !");
+                setNote(5);
+                setCommentaire("");
+              } catch (error) {
+                toast.error("Erreur lors de l'envoi de l'avis.");
+              } finally {
+                setIsSubmitting(false);
+              }
+            }}
+            className="space-y-4 bg-white rounded shadow p-4 mt-8"
+          >
+            <div>
+              <label className="block mb-1 font-medium">Note</label>
+              <select
+                className="border rounded px-2 py-1"
+                value={note}
+                onChange={(e) => setNote(Number(e.target.value))}
+                required
+              >
+                {[5,4,3,2,1].map((n) => (
+                  <option key={n} value={n}>{n} / 5</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block mb-1 font-medium">Commentaire</label>
+              <textarea
+                className="border rounded px-2 py-1 w-full"
+                value={commentaire}
+                onChange={(e) => setCommentaire(e.target.value)}
+                rows={3}
+                required
+              />
+            </div>
+            <Button type="submit" disabled={isSubmitting} className="w-full">
+              {isSubmitting ? "Envoi..." : "Envoyer mon avis"}
+            </Button>
+          </form>
+        </section>
+      )}
       
       <Footer />
     </div>

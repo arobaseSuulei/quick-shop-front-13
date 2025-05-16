@@ -5,7 +5,14 @@ import { Database } from '@/integrations/supabase/types';
 
 // Types
 
-type Message = Database['public']['Tables']['messagerie']['Row'];
+type MessageWithUser = {
+  id: number;
+  message: string;
+  date_envoi: string;
+  expediteur_id: string;
+  destinataire_id?: string | null;
+  utilisateur?: { nom: string | null; email: string } | null;
+};
 
 type User = {
   id: string;
@@ -15,115 +22,124 @@ type User = {
 
 const ALLOWED_ROLES = ['admin', 'employe', 'fournisseur'];
 
-const GroupChat: React.FC = () => {
-  const { user, userRoles, isLoading } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [users, setUsers] = useState<Record<string, User>>({});
+export default function GroupChat() {
+  const { user, userRoles } = useAuth();
+  const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
-  // Vérifie si l'utilisateur a un rôle autorisé
-  const isAllowed = userRoles.some((role) => ALLOWED_ROLES.includes(role));
+  const isAllowed = user && userRoles.some((role) => ALLOWED_ROLES.includes(role));
 
-  // Récupère les messages de groupe (destinataire_id null)
-  const fetchMessages = async () => {
-    setLoading(true);
+  // Récupérer les messages
+  async function fetchMessages() {
+    setFetchError(null);
     const { data, error } = await supabase
-      .from('messagerie')
-      .select('*')
-      .eq('destinataire_id', null)
-      .order('date_envoi', { ascending: true });
-    if (!error && data) {
-      setMessages(data);
-      // Récupère les infos utilisateurs pour affichage
-      const userIds = Array.from(new Set(data.map((m) => m.expediteur_id).filter(Boolean)));
-      if (userIds.length > 0) {
-        const { data: userData } = await supabase
-          .from('utilisateur')
-          .select('id, nom, email')
-          .in('id', userIds);
-        if (userData) {
-          const userMap: Record<string, User> = {};
-          userData.forEach((u) => { userMap[u.id] = u; });
-          setUsers(userMap);
-        }
-      }
+      .from("messagerie")
+      .select("id, message, date_envoi, expediteur_id, utilisateur:expediteur_id (nom, email)")
+      .is("destinataire_id", null)
+      .order("date_envoi", { ascending: true });
+    if (error) {
+      setFetchError(error.message);
+      setMessages([]);
+    } else {
+      setMessages(data || []);
+      console.log("Messages récupérés :", data);
     }
-    setLoading(false);
-  };
+  }
 
-  // Envoie un message de groupe
-  const sendMessage = async (e: React.FormEvent) => {
+  // Envoi d'un message
+  async function sendMessage(e: React.FormEvent) {
     e.preventDefault();
     if (!newMessage.trim() || !user) return;
-    const { error } = await supabase.from('messagerie').insert([
+
+    // Vérifie si l'utilisateur existe dans la table utilisateur
+    const { data: existingUser, error: userCheckError } = await supabase
+      .from('utilisateur')
+      .select('id')
+      .eq('id', user.id);
+
+    if (!userCheckError && (!existingUser || existingUser.length === 0)) {
+      // Insère l'utilisateur si besoin
+      const { error: insertUserError } = await supabase
+        .from('utilisateur')
+        .insert([{
+          id: user.id,
+          email: user.email,
+          nom: user.user_metadata?.nom || '',
+          mot_de_passe: '',
+          role: user.user_metadata?.role || null,
+          user_id: user.id
+        }]);
+      if (insertUserError) {
+        alert("Erreur lors de l'insertion dans utilisateur : " + insertUserError.message);
+        console.error(insertUserError);
+        return;
+      }
+    }
+
+    // Insère le message
+    const { error } = await supabase.from("messagerie").insert([
       {
         message: newMessage,
         expediteur_id: user.id,
         destinataire_id: null,
         date_envoi: new Date().toISOString(),
-      }
+      },
     ]);
     if (error) {
-      console.error("Erreur lors de l'envoi du message:", error);
-      if (typeof window !== 'undefined') {
-        alert("Erreur lors de l'envoi du message: " + error.message);
-      }
-    } else {
-      setNewMessage('');
-      fetchMessages();
+      alert('Erreur lors de l\'envoi du message : ' + error.message);
+      console.error('Erreur détaillée Supabase:', error);
+      return;
     }
-  };
+    setNewMessage("");
+    fetchMessages();
+  }
 
-  // Scroll auto en bas
+  // Scroll auto
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Initialisation et temps réel
   useEffect(() => {
     if (isAllowed) fetchMessages();
-    // Optionnel: abonnement temps réel
     const channel = supabase
-      .channel('group-messages')
+      .channel("group-messages")
       .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messagerie', filter: 'destinataire_id=is.null' },
-        (payload) => {
-          fetchMessages();
-        }
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messagerie", filter: "destinataire_id=is.null" },
+        () => fetchMessages()
       )
       .subscribe();
     return () => { channel.unsubscribe(); };
-    // eslint-disable-next-line
   }, [isAllowed]);
 
-  if (isLoading) return <div>Chargement...</div>;
   if (!isAllowed) return <div>Accès réservé aux fournisseurs, employés et admins.</div>;
 
   return (
     <div className="max-w-lg mx-auto bg-white rounded shadow p-4 flex flex-col h-[70vh]">
       <h2 className="text-xl font-bold mb-2 text-green-700">Messagerie d'équipe</h2>
       <div className="flex-1 overflow-y-auto mb-2 bg-gray-50 p-2 rounded">
-        {loading ? (
-          <div>Chargement des messages...</div>
-        ) : messages.length === 0 ? (
-          <div className="text-gray-400">Aucun message pour le moment.</div>
-        ) : (
-          messages.map((msg) => (
-            <div key={msg.id} className={`mb-2 ${msg.expediteur_id === user?.id ? 'text-right' : 'text-left'}`}>
-              <div className="inline-block bg-green-100 px-3 py-1 rounded">
-                <span className="font-semibold text-green-800">
-                  {users[msg.expediteur_id || '']?.nom || users[msg.expediteur_id || '']?.email || 'Utilisateur'}
-                </span>
-                <span className="ml-2 text-gray-600 text-xs">
-                  {msg.date_envoi ? new Date(msg.date_envoi).toLocaleString() : ''}
-                </span>
-                <div className="text-gray-800">{msg.message}</div>
-              </div>
-            </div>
-          ))
+        {fetchError && (
+          <div className="text-red-500">Erreur de chargement : {fetchError}</div>
         )}
+        {messages.length === 0 && !fetchError && (
+          <div className="text-gray-400">Aucun message pour le moment.</div>
+        )}
+        {messages.map((msg) => (
+          <div key={msg.id} className={`mb-2 ${msg.expediteur_id === user?.id ? "text-right" : "text-left"}`}>
+            <div className="inline-block bg-green-100 px-3 py-1 rounded">
+              <span className="font-semibold text-green-800">
+                {msg.utilisateur?.nom || msg.utilisateur?.email || "Utilisateur"}
+              </span>
+              <span className="ml-2 text-gray-600 text-xs">
+                {msg.date_envoi ? new Date(msg.date_envoi).toLocaleString() : ""}
+              </span>
+              <div className="text-gray-800">{msg.message}</div>
+            </div>
+          </div>
+        ))}
         <div ref={messagesEndRef} />
       </div>
       <form onSubmit={sendMessage} className="flex gap-2 mt-2">
@@ -133,18 +149,15 @@ const GroupChat: React.FC = () => {
           placeholder="Votre message..."
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          disabled={loading}
         />
         <button
           type="submit"
           className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700"
-          disabled={loading || !newMessage.trim()}
+          disabled={!newMessage.trim()}
         >
           Envoyer
         </button>
       </form>
     </div>
   );
-};
-
-export default GroupChat;
+}
