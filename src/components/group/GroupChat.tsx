@@ -57,14 +57,19 @@ const GroupChat: React.FC = () => {
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !user) return;
-    const { error } = await supabase.from('messagerie').insert({
-      message: newMessage,
-      expediteur_id: user.id,
-      destinataire_id: null,
-      date_envoi: new Date().toISOString(),
-    });
+    const { error } = await supabase.from('messagerie').insert([
+      {
+        message: newMessage,
+        expediteur_id: user.id,
+        destinataire_id: null,
+        date_envoi: new Date().toISOString(),
+      }
+    ]);
     if (error) {
       console.error("Erreur lors de l'envoi du message:", error);
+      if (typeof window !== 'undefined') {
+        alert("Erreur lors de l'envoi du message: " + error.message);
+      }
     } else {
       setNewMessage('');
       fetchMessages();

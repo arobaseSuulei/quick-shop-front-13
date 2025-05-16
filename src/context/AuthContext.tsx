@@ -104,6 +104,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.error("Erreur lors de l'insertion du rôle à la connexion:", roleError);
           }
         }
+        // Ajout automatique dans la table utilisateur si besoin
+        const { data: existingUser, error: userCheckError } = await supabase
+          .from('utilisateur')
+          .select('id')
+          .eq('id', user.id);
+        if (!userCheckError && (!existingUser || existingUser.length === 0)) {
+          const { error: insertUserError } = await supabase
+            .from('utilisateur')
+            .insert([{
+              id: user.id,
+              email: user.email,
+              nom: user.user_metadata?.nom || '',
+              mot_de_passe: '',
+              role: user.user_metadata?.role || null,
+              user_id: user.id
+            }]);
+          if (insertUserError) {
+            console.error("Erreur lors de l'insertion dans utilisateur:", insertUserError);
+          }
+        }
       }
 
       toast.success("Connexion réussie!");
@@ -148,6 +168,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .insert([{ user_id: data.user.id, role }]);
           if (roleError) {
             console.error("Erreur lors de l'insertion du rôle:", roleError);
+          }
+        }
+        // Ajout automatique dans la table utilisateur si besoin
+        const { data: existingUser, error: userCheckError } = await supabase
+          .from('utilisateur')
+          .select('id')
+          .eq('id', data.user.id);
+        if (!userCheckError && (!existingUser || existingUser.length === 0)) {
+          const { error: insertUserError } = await supabase
+            .from('utilisateur')
+            .insert([{
+              id: data.user.id,
+              email: data.user.email,
+              nom: data.user.user_metadata?.nom || '',
+              mot_de_passe: '',
+              role: data.user.user_metadata?.role || null,
+              user_id: data.user.id
+            }]);
+          if (insertUserError) {
+            console.error("Erreur lors de l'insertion dans utilisateur:", insertUserError);
           }
         }
       }
