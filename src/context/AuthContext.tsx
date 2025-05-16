@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -88,6 +87,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
 
+      // Ajout automatique du rôle dans user_roles si besoin (pour anciens comptes)
+      const user = data?.user;
+      const role = user?.user_metadata?.role;
+      if (user?.id && role) {
+        const { data: existingRoles, error: checkError } = await supabase
+          .from('user_roles')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('role', role);
+        if (!checkError && (!existingRoles || existingRoles.length === 0)) {
+          const { error: roleError } = await supabase
+            .from('user_roles')
+            .insert([{ user_id: user.id, role }]);
+          if (roleError) {
+            console.error("Erreur lors de l'insertion du rôle à la connexion:", roleError);
+          }
+        }
+      }
+
       toast.success("Connexion réussie!");
     } catch (error) {
       console.error("Erreur de connexion:", error);
@@ -114,6 +132,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) {
         toast.error("Échec de l'inscription: " + error.message);
         throw error;
+      }
+
+      // Ajout automatique du rôle dans user_roles si l'utilisateur a bien été créé
+      if (data?.user?.id) {
+        // Vérifie d'abord qu'il n'existe pas déjà une entrée pour cet utilisateur
+        const { data: existingRoles, error: checkError } = await supabase
+          .from('user_roles')
+          .select('id')
+          .eq('user_id', data.user.id)
+          .eq('role', role);
+        if (!checkError && (!existingRoles || existingRoles.length === 0)) {
+          const { error: roleError } = await supabase
+            .from('user_roles')
+            .insert([{ user_id: data.user.id, role }]);
+          if (roleError) {
+            console.error("Erreur lors de l'insertion du rôle:", roleError);
+          }
+        }
       }
 
       toast.success("Inscription réussie! Veuillez vérifier votre email pour confirmer.");
