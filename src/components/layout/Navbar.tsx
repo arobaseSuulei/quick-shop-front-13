@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { ShoppingCart, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,7 +18,13 @@ const Navbar = () => {
   return (
     <header className="border-b">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <Link to="/" className="text-xl font-bold">ShopSimple</Link>
+        <Link to="/" className="flex items-center gap-2 text-xl font-bold text-green-700">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="14" cy="14" rx="13" ry="13" fill="#27ae60"/>
+            <path d="M10 18C10 13 18 10 18 10C18 15 12 18 10 18Z" fill="#eafaf1"/>
+          </svg>
+          greenCop
+        </Link>
         
         <NavigationMenu>
           <NavigationMenuList className="hidden md:flex space-x-6">
@@ -67,6 +72,16 @@ const Navbar = () => {
                 <NavigationMenuLink asChild>
                   <Link to="/admin" className="text-sm hover:text-gray-600 transition-colors">
                     Administration
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            )}
+            
+            {user && (hasRole('admin') || hasRole('employe') || hasRole('fournisseur')) && (
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link to="/group-chat" className="text-sm hover:text-gray-600 transition-colors">
+                    Messagerie
                   </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>

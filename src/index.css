@@ -49,6 +49,13 @@
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Palette greenCop */
+    --color-primary: #27ae60;
+    --color-primary-dark: #219150;
+    --color-primary-light: #eafaf1;
+    --color-accent: #b2f2c8;
+    --color-text: #222;
   }
 
   .dark {
@@ -97,5 +104,34 @@
 
   body {
     @apply bg-background text-foreground;
+    background: var(--color-primary-light);
+    color: var(--color-text);
   }
+}
+
+/* Accent, badges, etc. */
+.badge-green {
+  background: var(--color-accent);
+  color: var(--color-primary-dark);
+}
+
+/* Pour override certains éléments si besoin */
+input:focus, button:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+
+.btn-primary, .bg-primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+}
+.text-primary {
+  color: var(--color-primary);
+}
+.bg-footer {
+  background: var(--color-primary);
+  color: #fff;
 }

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +16,7 @@ import AuthPage from "./pages/AuthPage";
 import ProfilePage from "./pages/ProfilePage";
 import AdminPanel from "./components/auth/AdminPanel";
 import RoleBasedRoute from "./components/auth/RoleBasedRoute";
+import GroupChatPage from "./pages/GroupChatPage";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +58,14 @@ const App = () => (
                     <OrderDetailPage />
                   </RoleBasedRoute>
                 } 
+              />
+              <Route 
+                path="/group-chat" 
+                element={
+                  <RoleBasedRoute allowedRoles={["admin", "employe", "fournisseur"]}>
+                    <GroupChatPage />
+                  </RoleBasedRoute>
+                }
               />
               <Route path="*" element={<NotFound />} />
             </Routes>

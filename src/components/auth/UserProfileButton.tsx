@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -15,7 +14,7 @@ import { User, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const UserProfileButton = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, userRoles } = useAuth();
   const navigate = useNavigate();
   
   if (!user) {
@@ -46,7 +45,13 @@ const UserProfileButton = () => {
         <DropdownMenuLabel>
           <div className="flex flex-col gap-1">
             <p className="text-sm font-medium">{user.email}</p>
-            <UserRole />
+            <div className="flex flex-wrap gap-2 mt-1">
+              {userRoles.map((role) => (
+                <span key={role} className="badge-green px-2 py-1 rounded text-xs font-semibold capitalize">
+                  {role}
+                </span>
+              ))}
+            </div>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
