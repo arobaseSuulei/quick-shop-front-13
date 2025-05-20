@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, Star } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
@@ -19,6 +19,14 @@ interface Product {
   prediction_rupture: number | null;
 }
 
+interface Review {
+  id: number;
+  note: number;
+  commentaire: string;
+  client_id: string;
+  produit_id: number;
+}
+
 const ProductPage = () => {
   const { id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
@@ -29,10 +37,14 @@ const ProductPage = () => {
   const [note, setNote] = useState(5);
   const [commentaire, setCommentaire] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const isClient = user && userRoles.includes("client");
 
   useEffect(() => {
     fetchProduct();
+    if (id) {
+      fetchReviews();
+    }
   }, [id]);
 
   const fetchProduct = async () => {
@@ -53,6 +65,20 @@ const ProductPage = () => {
       toast.error("Impossible de charger le produit.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchReviews = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("avis")
+        .select("*")
+        .eq("produit_id", parseInt(id || "0"));
+
+      if (error) throw error;
+      setReviews(data || []);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des avis:", error);
     }
   };
 
@@ -185,6 +211,39 @@ const ProductPage = () => {
         </div>
       </main>
       
+      {/* Section des avis */}
+      <section className="container mx-auto px-4 py-8">
+        <h2 className="text-2xl font-semibold mb-6">Avis clients</h2>
+        
+        {reviews.length > 0 ? (
+          <div className="space-y-6">
+            {reviews.map((review) => (
+              <div key={review.id} className="bg-white rounded-lg shadow p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`h-5 w-5 ${
+                            i < review.note ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-gray-700 mt-2">{review.commentaire}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500 text-center py-8">
+            Aucun avis pour ce produit pour le moment.
+          </p>
+        )}
+      </section>
+      
       {/* Formulaire d'avis client */}
       {isClient && product && (
         <section className="container mx-auto px-4 py-8 max-w-xl">
@@ -194,6 +253,32 @@ const ProductPage = () => {
               e.preventDefault();
               setIsSubmitting(true);
               try {
+                // Vérifier si l'utilisateur existe dans la table client
+                const { data: existingClient, error: clientCheckError } = await supabase
+                  .from('client')
+                  .select('id')
+                  .eq('id', user.id)
+                  .single();
+
+                if (clientCheckError && clientCheckError.code !== 'PGRST116') {
+                  throw clientCheckError;
+                }
+
+                // Si l'utilisateur n'existe pas dans la table client, le créer
+                if (!existingClient) {
+                  const { error: insertClientError } = await supabase
+                    .from('client')
+                    .insert([{
+                      id: user.id,
+                      adresse: null
+                    }]);
+                  
+                  if (insertClientError) {
+                    throw insertClientError;
+                  }
+                }
+
+                // Ajouter l'avis
                 const { error } = await supabase.from("avis").insert([
                   {
                     client_id: user.id,
@@ -206,7 +291,10 @@ const ProductPage = () => {
                 toast.success("Merci pour votre avis !");
                 setNote(5);
                 setCommentaire("");
+                // Rafraîchir la liste des avis
+                await fetchReviews();
               } catch (error) {
+                console.error("Erreur détaillée:", error);
                 toast.error("Erreur lors de l'envoi de l'avis.");
               } finally {
                 setIsSubmitting(false);
