@@ -53,29 +53,24 @@ export default function GroupChat() {
     e.preventDefault();
     if (!newMessage.trim() || !user) return;
 
-    // Vérifie si l'utilisateur existe dans la table utilisateur
-    const { data: existingUser, error: userCheckError } = await supabase
+    // Vérifie si l'utilisateur existe dans la table utilisateur et l'ajoute si nécessaire
+    const { error: upsertUserError } = await supabase
       .from('utilisateur')
-      .select('id')
-      .eq('id', user.id);
+      .upsert([{
+        id: user.id,
+        email: user.email,
+        nom: user.user_metadata?.nom || '',
+        mot_de_passe: '',
+        role: user.user_metadata?.role || null,
+        user_id: user.id
+      }], {
+        onConflict: 'email'
+      });
 
-    if (!userCheckError && (!existingUser || existingUser.length === 0)) {
-      // Insère l'utilisateur si besoin
-      const { error: insertUserError } = await supabase
-        .from('utilisateur')
-        .insert([{
-          id: user.id,
-          email: user.email,
-          nom: user.user_metadata?.nom || '',
-          mot_de_passe: '',
-          role: user.user_metadata?.role || null,
-          user_id: user.id
-        }]);
-      if (insertUserError) {
-        alert("Erreur lors de l'insertion dans utilisateur : " + insertUserError.message);
-        console.error(insertUserError);
-        return;
-      }
+    if (upsertUserError) {
+      alert("Erreur lors de la vérification/création de l'utilisateur : " + upsertUserError.message);
+      console.error(upsertUserError);
+      return;
     }
 
     // Insère le message
