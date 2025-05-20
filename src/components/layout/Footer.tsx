@@ -6,7 +6,7 @@ const Footer = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="font-bold mb-4 text-green-700">greenCop</h3>
+            <h3 className="font-bold mb-4 text-green-700">ElectronikShop</h3>
             <p className="text-sm text-gray-600">
               Quality products for your everyday needs. Shop with confidence.
             </p>
@@ -87,7 +87,7 @@ const Footer = () => {
         </div>
         
         <div className="border-t mt-8 pt-6 text-center text-sm text-green-700">
-          <p>&copy; {new Date().getFullYear()} greenCop. Tous droits réservés.</p>
+          <p>&copy; {new Date().getFullYear()} ElectronikShop. Tous droits réservés.</p>
         </div>
       </div>
     </footer>

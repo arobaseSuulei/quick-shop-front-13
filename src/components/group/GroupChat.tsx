@@ -115,7 +115,7 @@ export default function GroupChat() {
 
   return (
     <div className="max-w-lg mx-auto bg-white rounded shadow p-4 flex flex-col h-[70vh]">
-      <h2 className="text-xl font-bold mb-2 text-green-700">Messagerie d'équipe</h2>
+      <h2 className="text-xl font-bold mb-2 text-blue-700">Messagerie d'équipe</h2>
       <div className="flex-1 overflow-y-auto mb-2 bg-gray-50 p-2 rounded">
         {fetchError && (
           <div className="text-red-500">Erreur de chargement : {fetchError}</div>
@@ -125,8 +125,8 @@ export default function GroupChat() {
         )}
         {messages.map((msg) => (
           <div key={msg.id} className={`mb-2 ${msg.expediteur_id === user?.id ? "text-right" : "text-left"}`}>
-            <div className="inline-block bg-green-100 px-3 py-1 rounded">
-              <span className="font-semibold text-green-800">
+            <div className="inline-block bg-blue-100 px-3 py-1 rounded">
+              <span className="font-semibold text-blue-800">
                 {msg.utilisateur?.nom || msg.utilisateur?.email || "Utilisateur"}
               </span>
               <span className="ml-2 text-gray-600 text-xs">
@@ -141,14 +141,14 @@ export default function GroupChat() {
       <form onSubmit={sendMessage} className="flex gap-2 mt-2">
         <input
           type="text"
-          className="flex-1 border rounded px-2 py-1 focus:outline-green-500"
+          className="flex-1 border rounded px-2 py-1 focus:outline-blue-500"
           placeholder="Votre message..."
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
         />
         <button
           type="submit"
-          className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700"
+          className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
           disabled={!newMessage.trim()}
         >
           Envoyer

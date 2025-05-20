@@ -23,7 +23,7 @@ const Navbar = () => {
             <ellipse cx="14" cy="14" rx="13" ry="13" fill="#27ae60"/>
             <path d="M10 18C10 13 18 10 18 10C18 15 12 18 10 18Z" fill="#eafaf1"/>
           </svg>
-          greenCop
+          ElectronikShop
         </Link>
         
         <NavigationMenu>
@@ -56,16 +56,6 @@ const Navbar = () => {
                 </Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
-            
-            {user && hasRole('client') && (
-              <NavigationMenuItem>
-                <NavigationMenuLink asChild>
-                  <Link to="/orders" className="text-sm hover:text-gray-600 transition-colors">
-                    Mes Commandes
-                  </Link>
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-            )}
             
             {user && hasRole('admin') && (
               <NavigationMenuItem>

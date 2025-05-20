@@ -77,13 +77,34 @@ const Index = () => {
         {/* Hero Section */}
         <section ref={heroRef} className="mb-16 flex flex-col md:flex-row items-center gap-8 bg-white rounded-xl shadow p-8">
           <div className="flex-1">
-            <h1 className="text-4xl md:text-5xl font-bold text-green-700 mb-4">greenCop, l'e-commerce engagé pour la planète</h1>
+            <h1 className="text-4xl md:text-5xl font-bold text-green-700 mb-4">ElectronikShop, l'e-commerce engagé pour la planète</h1>
             <p className="text-lg text-gray-700 mb-6">Achetez responsable, recyclez malin. Découvrez des produits éco-conçus et participez à la réduction des déchets !</p>
             <a href="#products" className="btn-primary px-6 py-3 rounded font-semibold text-lg">Découvrir la boutique</a>
           </div>
           <div className="flex-1 flex justify-center">
             <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80" alt="Recyclage vert" className="rounded-xl shadow-lg w-full max-w-xs object-cover" />
           </div>
+        </section>
+
+        {/* Nos produits */}
+        <section ref={productsRef} id="products" className="mb-16">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-green-700">Nos produits</h2>
+            <p className="text-gray-600 mt-2">Découvrez notre sélection éco-responsable</p>
+          </div>
+          <ProductFilter />
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4">Chargement des produits...</p>
+            </div>
+          ) : products.length > 0 ? (
+            <ProductGrid products={products} />
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-lg text-gray-600">Aucun produit trouvé dans cette catégorie.</p>
+            </div>
+          )}
         </section>
 
         {/* Qui sommes-nous */}
@@ -93,7 +114,7 @@ const Index = () => {
           </div>
           <div className="flex-1 order-1 md:order-2">
             <h2 className="text-3xl font-bold text-green-700 mb-4">Qui sommes-nous ?</h2>
-            <p className="text-gray-700 text-lg">greenCop est une équipe passionnée par l'économie circulaire et le développement durable. Nous croyons qu'un e-commerce peut être responsable, transparent et bénéfique pour la planète. Notre mission : rendre le recyclage accessible à tous, tout en proposant des produits de qualité.</p>
+            <p className="text-gray-700 text-lg">ElectronikShop est une équipe passionnée par l'économie circulaire et le développement durable. Nous croyons qu'un e-commerce peut être responsable, transparent et bénéfique pour la planète. Notre mission : rendre le recyclage accessible à tous, tout en proposant des produits de qualité.</p>
           </div>
         </section>
 
@@ -101,7 +122,7 @@ const Index = () => {
         <section ref={recycleRef} className="mb-16 flex flex-col md:flex-row items-center gap-8 bg-green-50 rounded-xl p-8">
           <div className="flex-1">
             <h2 className="text-3xl font-bold text-green-700 mb-4">Notre engagement pour le recyclage</h2>
-            <p className="text-gray-700 text-lg mb-4">Chaque produit vendu sur greenCop contribue à la réduction des déchets. Nous privilégions les matériaux recyclés, les emballages éco-responsables et la seconde vie des objets. Ensemble, faisons la différence !</p>
+            <p className="text-gray-700 text-lg mb-4">Chaque produit vendu sur ElectronikShop contribue à la réduction des déchets. Nous privilégions les matériaux recyclés, les emballages éco-responsables et la seconde vie des objets. Ensemble, faisons la différence !</p>
             <ul className="list-disc pl-6 text-green-800">
               <li>Produits issus du recyclage ou recyclables</li>
               <li>Partenariats avec des acteurs locaux du recyclage</li>
@@ -135,30 +156,9 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Nos produits */}
-        <section ref={productsRef} id="products" className="mb-16">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-green-700">Nos produits</h2>
-            <p className="text-gray-600 mt-2">Découvrez notre sélection éco-responsable</p>
-          </div>
-          <ProductFilter />
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4">Chargement des produits...</p>
-            </div>
-          ) : products.length > 0 ? (
-            <ProductGrid products={products} />
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-lg text-gray-600">Aucun produit trouvé dans cette catégorie.</p>
-            </div>
-          )}
-        </section>
-
         {/* Appel à l'action */}
         <section ref={ctaRef} className="mb-16 text-center">
-          <h2 className="text-3xl font-bold text-green-700 mb-4">Rejoignez le mouvement greenCop !</h2>
+          <h2 className="text-3xl font-bold text-green-700 mb-4">Rejoignez le mouvement ElectronikShop !</h2>
           <p className="text-lg text-gray-700 mb-6">Ensemble, consommons mieux et recyclons plus. Découvrez nos produits ou contactez-nous pour en savoir plus sur notre démarche.</p>
           <a href="#products" className="btn-primary px-8 py-3 rounded font-semibold text-lg">Voir la boutique</a>
         </section>
